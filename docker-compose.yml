@@ -1,0 +1,12 @@
+services:
+  mcp-server:
+    build: .
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - CLINT_MCP_TRANSPORT=streamable-http
+      - CLINT_MCP_HOST=0.0.0.0
+      - CLINT_MCP_PORT=8001
+    restart: unless-stopped

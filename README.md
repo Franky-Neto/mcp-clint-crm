@@ -34,21 +34,34 @@ git clone https://github.com/seu-usuario/mcp-clint-crm.git
 cd mcp-clint-crm
 ```
 
-### 2. Configurar a API Key
+### 2. Configurar as variáveis de ambiente
 
 Crie um arquivo `.env` na raiz do projeto:
 
 ```env
+# Obrigatório — sua chave da API do Clint CRM
 CLINT_API_KEY=sua_chave_api_aqui
+
+# Opcional — necessário apenas para modo HTTP (ver seção "Deploy via HTTP")
+CLINT_MCP_TRANSPORT=stdio
+CLINT_MCP_HOST=0.0.0.0
+CLINT_MCP_PORT=8001
 ```
 
-### 3. Instalar dependências
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `CLINT_API_KEY` | Sim | Chave da API do Clint CRM (plano Elite) |
+| `CLINT_MCP_TRANSPORT` | Não | Transporte do servidor: `stdio` (padrão) ou `streamable-http` |
+| `CLINT_MCP_HOST` | Não | Host do servidor HTTP (padrão: `0.0.0.0`) |
+| `CLINT_MCP_PORT` | Não | Porta do servidor HTTP (padrão: `8001`) |
+
+### 3. Instalar dependencias
 
 ```bash
 uv sync
 ```
 
-### 4. Executar o servidor (modo standalone)
+### 4. Executar o servidor (modo stdio)
 
 ```bash
 uv run src/server.py
@@ -56,7 +69,7 @@ uv run src/server.py
 
 ---
 
-## Configuração via stdio (Claude Desktop, Cursor, etc.)
+## Configuracao via stdio (Claude Desktop, Cursor, etc.)
 
 Para utilizar o servidor MCP com assistentes de IA que suportam o protocolo MCP via **stdio**, adicione a seguinte configuração no arquivo de configuração do seu cliente MCP.
 
@@ -113,6 +126,80 @@ claude mcp add clint-crm -- uv run --directory /caminho/absoluto/para/mcp-clint-
 ```
 
 > **Nota:** Substitua `/caminho/absoluto/para/mcp-clint-crm` pelo caminho real do projeto no seu sistema. A variável `CLINT_API_KEY` pode ser definida no `.env` do projeto ou diretamente na configuração `env` do cliente MCP.
+
+---
+
+## Deploy via HTTP (Servidor remoto / VPS / Cloud)
+
+Para disponibilizar o MCP server via rede (ex: para uso com Claude.ai, Cowork, ChatGPT), o servidor roda em modo HTTP com transport Streamable HTTP.
+
+### Opção 1: Docker (recomendado)
+
+```bash
+git clone https://github.com/seu-usuario/mcp-clint-crm.git
+cd mcp-clint-crm
+```
+
+Configure o `.env`:
+
+```env
+CLINT_API_KEY=sua_chave_api_aqui
+```
+
+Suba o container:
+
+```bash
+docker compose up -d
+```
+
+O servidor estará disponível em `http://seu-servidor:8001/mcp` com health check automático em `/health`.
+
+### Opção 2: Uvicorn direto
+
+```bash
+cd mcp-clint-crm && uv sync
+CLINT_MCP_TRANSPORT=streamable-http uv run uvicorn server:app --host 0.0.0.0 --port 8001 --app-dir src
+```
+
+### Opção 3: VPS com PM2
+
+```bash
+cd mcp-clint-crm && uv sync
+pm2 start "uv run uvicorn server:app --host 0.0.0.0 --port 8001 --app-dir src" --name clint-mcp
+```
+
+### Configuração dos clientes MCP (HTTP)
+
+Após o deploy, configure o cliente MCP com a URL do servidor.
+
+**Claude.ai / Cowork:**
+
+Adicione como custom connector na interface, ou no `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "clint-crm": {
+      "type": "http",
+      "url": "https://seu-servidor.com/mcp"
+    }
+  }
+}
+```
+
+**ChatGPT / Codex:**
+
+```json
+{
+  "mcpServers": {
+    "clint-crm": {
+      "url": "https://seu-servidor.com/mcp"
+    }
+  }
+}
+```
+
+> **Importante:** Em produção, use HTTPS (TLS) com um reverse proxy (Nginx, Caddy, etc.) na frente do servidor MCP. O servidor em si não faz terminação TLS.
 
 ---
 
@@ -467,6 +554,7 @@ O servidor retorna o total de registros disponíveis e sugere o próximo offset 
 | httpx | 0.28.1+ | Cliente HTTP assíncrono |
 | Pydantic | 2.12.5+ | Validação de dados e modelos |
 | UV | - | Gerenciador de pacotes |
+| Docker | - | Containerização (opcional) |
 
 ---
 

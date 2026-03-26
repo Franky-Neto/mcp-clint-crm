@@ -1,0 +1,10 @@
+.venv
+.git
+.env
+__pycache__
+*.pyc
+.DS_Store
+
+# Internal MD files
+initial-info.md
+testes.md

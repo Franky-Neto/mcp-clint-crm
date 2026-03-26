@@ -34,13 +34,26 @@ git clone https://github.com/your-username/mcp-clint-crm.git
 cd mcp-clint-crm
 ```
 
-### 2. Configure the API Key
+### 2. Configure environment variables
 
 Create a `.env` file in the project root:
 
 ```env
+# Required — your Clint CRM API key
 CLINT_API_KEY=your_api_key_here
+
+# Optional — only needed for HTTP mode (see "HTTP Deployment" section)
+CLINT_MCP_TRANSPORT=stdio
+CLINT_MCP_HOST=0.0.0.0
+CLINT_MCP_PORT=8001
 ```
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CLINT_API_KEY` | Yes | Clint CRM API key (Elite plan) |
+| `CLINT_MCP_TRANSPORT` | No | Server transport: `stdio` (default) or `streamable-http` |
+| `CLINT_MCP_HOST` | No | HTTP server host (default: `0.0.0.0`) |
+| `CLINT_MCP_PORT` | No | HTTP server port (default: `8001`) |
 
 ### 3. Install dependencies
 
@@ -48,7 +61,7 @@ CLINT_API_KEY=your_api_key_here
 uv sync
 ```
 
-### 4. Run the server (standalone mode)
+### 4. Run the server (stdio mode)
 
 ```bash
 uv run src/server.py
@@ -113,6 +126,80 @@ claude mcp add clint-crm -- uv run --directory /absolute/path/to/mcp-clint-crm s
 ```
 
 > **Note:** Replace `/absolute/path/to/mcp-clint-crm` with the actual project path on your system. The `CLINT_API_KEY` variable can be defined in the project's `.env` file or directly in the MCP client's `env` configuration.
+
+---
+
+## HTTP Deployment (Remote server / VPS / Cloud)
+
+To make the MCP server available over the network (e.g., for use with Claude.ai, Cowork, ChatGPT), the server runs in HTTP mode with Streamable HTTP transport.
+
+### Option 1: Docker (recommended)
+
+```bash
+git clone https://github.com/your-username/mcp-clint-crm.git
+cd mcp-clint-crm
+```
+
+Configure `.env`:
+
+```env
+CLINT_API_KEY=your_api_key_here
+```
+
+Start the container:
+
+```bash
+docker compose up -d
+```
+
+The server will be available at `http://your-server:8001/mcp` with automatic health check at `/health`.
+
+### Option 2: Uvicorn directly
+
+```bash
+cd mcp-clint-crm && uv sync
+CLINT_MCP_TRANSPORT=streamable-http uv run uvicorn server:app --host 0.0.0.0 --port 8001 --app-dir src
+```
+
+### Option 3: VPS with PM2
+
+```bash
+cd mcp-clint-crm && uv sync
+pm2 start "uv run uvicorn server:app --host 0.0.0.0 --port 8001 --app-dir src" --name clint-mcp
+```
+
+### MCP client configuration (HTTP)
+
+After deploying, configure your MCP client with the server URL.
+
+**Claude.ai / Cowork:**
+
+Add as a custom connector in the UI, or in `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "clint-crm": {
+      "type": "http",
+      "url": "https://your-server.com/mcp"
+    }
+  }
+}
+```
+
+**ChatGPT / Codex:**
+
+```json
+{
+  "mcpServers": {
+    "clint-crm": {
+      "url": "https://your-server.com/mcp"
+    }
+  }
+}
+```
+
+> **Important:** In production, use HTTPS (TLS) with a reverse proxy (Nginx, Caddy, etc.) in front of the MCP server. The server itself does not handle TLS termination.
 
 ---
 
@@ -467,6 +554,7 @@ The server returns the total available records and suggests the next offset when
 | httpx | 0.28.1+ | Async HTTP client |
 | Pydantic | 2.12.5+ | Data validation and models |
 | UV | - | Package manager |
+| Docker | - | Containerization (optional) |
 
 ---
 

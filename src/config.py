@@ -1,7 +1,17 @@
+import os
+
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 
 load_dotenv()
+
+# --- Settings --------------------------------------------------------
+
+TRANSPORT = os.environ.get("CLINT_MCP_TRANSPORT", "stdio")
+HOST = os.environ.get("CLINT_MCP_HOST", "0.0.0.0")
+PORT = int(os.environ.get("CLINT_MCP_PORT", "8001"))
+
+# --- MCP instance ----------------------------------------------------
 
 mcp = FastMCP(
     name="Clint_MCP",
