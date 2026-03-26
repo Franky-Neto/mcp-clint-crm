@@ -46,6 +46,17 @@ CLINT_API_KEY=your_api_key_here
 CLINT_MCP_TRANSPORT=stdio
 CLINT_MCP_HOST=0.0.0.0
 CLINT_MCP_PORT=8001
+
+# Optional — Google OAuth (required for authentication via Cowork/Claude.ai)
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxx
+GOOGLE_AUTH_BASE_URL=https://your-server.com
+
+# Optional — Access control (requires Google OAuth enabled)
+CLINT_MCP_RESTRICT_BY_EMAIL=false
+CLINT_MCP_ALLOWED_EMAILS=user1@gmail.com,user2@gmail.com
+CLINT_MCP_RESTRICT_BY_DOMAIN=false
+CLINT_MCP_ALLOWED_DOMAINS=yourcompany.com
 ```
 
 | Variable | Required | Description |
@@ -54,6 +65,13 @@ CLINT_MCP_PORT=8001
 | `CLINT_MCP_TRANSPORT` | No | Server transport: `stdio` (default) or `streamable-http` |
 | `CLINT_MCP_HOST` | No | HTTP server host (default: `0.0.0.0`) |
 | `CLINT_MCP_PORT` | No | HTTP server port (default: `8001`) |
+| `GOOGLE_CLIENT_ID` | No | Google OAuth Client ID (see "Authentication" section) |
+| `GOOGLE_CLIENT_SECRET` | No | Google OAuth Client Secret |
+| `GOOGLE_AUTH_BASE_URL` | No | Server public URL (default: `http://localhost:8001`) |
+| `CLINT_MCP_RESTRICT_BY_EMAIL` | No | `true` to restrict access by email (default: `false`) |
+| `CLINT_MCP_ALLOWED_EMAILS` | No | Allowed emails (comma-separated) |
+| `CLINT_MCP_RESTRICT_BY_DOMAIN` | No | `true` to restrict access by domain (default: `false`) |
+| `CLINT_MCP_ALLOWED_DOMAINS` | No | Allowed domains (comma-separated) |
 
 ### 3. Install dependencies
 
@@ -126,6 +144,41 @@ claude mcp add clint-crm -- uv run --directory /absolute/path/to/mcp-clint-crm s
 ```
 
 > **Note:** Replace `/absolute/path/to/mcp-clint-crm` with the actual project path on your system. The `CLINT_API_KEY` variable can be defined in the project's `.env` file or directly in the MCP client's `env` configuration.
+
+---
+
+## Authentication (Google OAuth)
+
+The server supports **Google OAuth** authentication, allowing you to control who can access the MCP server via HTTP. Authentication is **optional** — if `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are not set, the server accepts any connection.
+
+### Setting up Google OAuth
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create or select a project
+3. Go to **APIs & Services → Credentials → Create Credentials → OAuth Client ID**
+4. Type: **Web application**
+5. Add Redirect URI: `https://your-server.com/auth/callback`
+6. Copy the **Client ID** and **Client Secret** to your `.env`
+
+### Access control
+
+You can restrict who can use the server with two options (can be used together):
+
+**By email** — only specific emails:
+```env
+CLINT_MCP_RESTRICT_BY_EMAIL=true
+CLINT_MCP_ALLOWED_EMAILS=frank@gmail.com,colleague@company.com
+```
+
+**By domain** — any email from a domain:
+```env
+CLINT_MCP_RESTRICT_BY_DOMAIN=true
+CLINT_MCP_ALLOWED_DOMAINS=yourcompany.com,partner.com
+```
+
+If both are enabled, the user needs to be in **at least one** of the lists to gain access.
+
+If no restriction is enabled (`false`), any authenticated Google account will have access.
 
 ---
 

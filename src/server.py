@@ -20,7 +20,7 @@ middleware = [
         CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-        allow_headers=["mcp-protocol-version", "mcp-session-id", "Content-Type"],
+        allow_headers=["mcp-protocol-version", "mcp-session-id", "Authorization", "Content-Type"],
         expose_headers=["mcp-session-id"],
     )
 ]

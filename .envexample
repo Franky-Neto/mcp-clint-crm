@@ -1,1 +1,74 @@
-CLINT_API_KEY=<your-api-key-here>
+#
+#  Clint CRM MCP Server
+#  Copy this file to .env and fill in the values:  cp .envexample .env
+#
+
+
+# ┌─────────────────────────────────────────────┐
+# │  CLINT CRM API                              │
+# └─────────────────────────────────────────────┘
+
+# [Required] Your Clint CRM API key (Elite plan).
+# Generate at: https://clint.digital/ → Settings → API
+
+CLINT_API_KEY=
+
+
+# ┌─────────────────────────────────────────────┐
+# │  SERVER TRANSPORT                           │
+# └─────────────────────────────────────────────┘
+
+# "stdio"            → local use (Claude Code, Cursor, Windsurf)
+# "streamable-http"  → remote/cloud (Claude.ai, Cowork, ChatGPT)
+
+CLINT_MCP_TRANSPORT=stdio
+
+# Host and port (only for HTTP mode).
+# 0.0.0.0 = accept connections from any interface (required for Docker).
+
+CLINT_MCP_HOST=0.0.0.0
+CLINT_MCP_PORT=8001
+
+
+# ┌─────────────────────────────────────────────┐
+# │  GOOGLE OAUTH  (optional)                   │
+# └─────────────────────────────────────────────┘
+#
+# Enables authentication via Google for HTTP mode.
+# If not set → server accepts any connection.
+#
+# How to set up:
+#   1. https://console.cloud.google.com
+#   2. Create or select a project
+#   3. APIs & Services → Credentials → OAuth Client ID
+#   4. Type: Web application
+#   5. Redirect URI: https://your-server.com/auth/callback
+#   6. Copy Client ID and Secret below
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Public URL of your server (used for OAuth redirect).
+#   Local dev  → http://localhost:8001
+#   Production → https://your-server.com
+
+GOOGLE_AUTH_BASE_URL=http://localhost:8001
+
+
+# ┌─────────────────────────────────────────────┐
+# │  ACCESS CONTROL  (optional, requires OAuth) │
+# └─────────────────────────────────────────────┘
+#
+# Restrict who can access after Google login.
+# Both can be used together — user matches at least one.
+# If neither is enabled → any Google account has access.
+
+# By email — only these addresses can connect.
+
+CLINT_MCP_RESTRICT_BY_EMAIL=false
+CLINT_MCP_ALLOWED_EMAILS=user1@gmail.com,user2@gmail.com
+
+# By domain — any email @domain can connect.
+
+CLINT_MCP_RESTRICT_BY_DOMAIN=false
+CLINT_MCP_ALLOWED_DOMAINS=yourcompany.com
